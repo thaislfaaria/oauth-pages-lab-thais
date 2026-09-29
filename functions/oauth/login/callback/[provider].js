@@ -167,8 +167,7 @@ export async function onRequestGet(context) {
         method: "DELETE",
         headers: {
           Authorization:
-            "Basic " +
-            btoa(`${clientId}:${clientSecret}`),
+            "Basic " + btoa(`${clientId}:${clientSecret}`),
           Accept: "application/vnd.github+json",
         },
         body: new URLSearchParams({
