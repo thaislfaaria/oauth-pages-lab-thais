@@ -1,1 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login OAuth</title>
+</head>
+<body>
 
+  <h1>Laboratório de Login</h1>
+
+  <p id="status">Verificando sessão...</p>
+
+  <a href="/oauth/login/google">Entrar com Google</a>
+
+  <br><br>
+
+  <a href="/oauth/login/github">Entrar com GitHub</a>
+
+  <br><br>
+
+  <form method="post" action="/oauth/logout">
+    <button type="submit">Sair</button>
+  </form>
+
+  <script src="/app.js"></script>
+
+</body>
+</html>
