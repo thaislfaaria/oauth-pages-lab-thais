@@ -103,9 +103,14 @@ export async function onRequestGet(context) {
   });
 
   if (!tokenResponse.ok) {
-    return new Response("Falha ao trocar código OAuth", {
-      status: 502,
-    });
+    const tokenError = await tokenResponse.text();
+
+    return new Response(
+      `Falha ao trocar código OAuth: ${tokenResponse.status} ${tokenError}`,
+      {
+        status: 502,
+      }
+    );
   }
 
   const tokens = await tokenResponse.json();
@@ -143,9 +148,14 @@ export async function onRequestGet(context) {
     });
 
     if (!userResponse.ok) {
-      return new Response("Falha ao obter usuário do GitHub", {
-        status: 502,
-      });
+      const userError = await userResponse.text();
+
+      return new Response(
+        `Falha ao obter usuário do GitHub: ${userResponse.status} ${userError}`,
+        {
+          status: 502,
+        }
+      );
     }
 
     const user = await userResponse.json();
@@ -168,74 +178,4 @@ export async function onRequestGet(context) {
         method: "DELETE",
         headers: {
           Authorization:
-            "Basic " + btoa(`${clientId}:${clientSecret}`),
-          Accept: "application/vnd.github+json",
-        },
-        body: new URLSearchParams({
-          access_token: tokens.access_token,
-        }),
-      }
-    );
-
-    if (revokeResponse.status !== 204) {
-      return new Response("Falha ao revogar token GitHub", {
-        status: 502,
-      });
-    }
-  }
-
-  const sessionId = await randomBase64Url(32);
-  const sessionHash = await sha256Base64Url(sessionId);
-  const sessionExpiresAt = now + 28800;
-
-  await env.DB.prepare(
-    `INSERT INTO sessions
-     (id_hash, issuer, subject, email, display_name, expires_at, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  )
-    .bind(
-      sessionHash,
-      provider.issuer,
-      identity.subject,
-      identity.email,
-      identity.displayName,
-      sessionExpiresAt,
-      now
-    )
-    .run();
-
-  const sessionCookie = serializeCookie(
-    "__Host-session",
-    sessionId,
-    {
-      maxAge: 28800,
-      httpOnly: true,
-      secure: true,
-      sameSite: "Strict",
-      path: "/",
-    }
-  );
-
-  const clearTransactionCookie = serializeCookie(
-    "__Host-oauth-tx",
-    "",
-    {
-      maxAge: 0,
-      httpOnly: true,
-      secure: true,
-      sameSite: "Lax",
-      path: "/",
-    }
-  );
-
-  const headers = new Headers();
-  headers.set("Location", baseUrl);
-  headers.append("Set-Cookie", sessionCookie);
-  headers.append("Set-Cookie", clearTransactionCookie);
-  headers.set("Cache-Control", "no-store");
-
-  return new Response(null, {
-    status: 302,
-    headers,
-  });
-}
+            "Basic " +
