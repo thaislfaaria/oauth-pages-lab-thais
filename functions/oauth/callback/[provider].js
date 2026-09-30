@@ -180,10 +180,11 @@ export async function onRequestGet(context) {
           Authorization:
             "Basic " + btoa(`${clientId}:${clientSecret}`),
           Accept: "application/vnd.github+json",
+          "Content-Type": "application/json",
           "X-GitHub-Api-Version": "2026-03-10",
           "User-Agent": "oauth-pages-lab-thais",
         },
-        body: new URLSearchParams({
+        body: JSON.stringify({
           access_token: tokens.access_token,
         }),
       }
