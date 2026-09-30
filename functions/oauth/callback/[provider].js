@@ -1,3 +1,4 @@
+```js
 import { getProvider } from "../../_shared/providers.js";
 import { parseCookies, serializeCookie } from "../../_shared/cookies.js";
 import { sha256Base64Url, randomBase64Url } from "../../_shared/crypto.js";
@@ -138,6 +139,7 @@ export async function onRequestGet(context) {
         Authorization: `Bearer ${tokens.access_token}`,
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2026-03-10",
+        "User-Agent": "oauth-pages-lab-thais",
       },
     });
 
