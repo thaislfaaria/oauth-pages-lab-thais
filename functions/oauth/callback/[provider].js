@@ -1,4 +1,3 @@
-js
 import { getProvider } from "../../_shared/providers.js";
 import { parseCookies, serializeCookie } from "../../_shared/cookies.js";
 import { sha256Base64Url, randomBase64Url } from "../../_shared/crypto.js";
