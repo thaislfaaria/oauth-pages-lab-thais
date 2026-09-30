@@ -178,4 +178,81 @@ export async function onRequestGet(context) {
         method: "DELETE",
         headers: {
           Authorization:
-            "Basic " +
+            "Basic " + btoa(`${clientId}:${clientSecret}`),
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2026-03-10",
+          "User-Agent": "oauth-pages-lab-thais",
+        },
+        body: new URLSearchParams({
+          access_token: tokens.access_token,
+        }),
+      }
+    );
+
+    if (revokeResponse.status !== 204) {
+      const revokeError = await revokeResponse.text();
+
+      return new Response(
+        `Falha ao revogar token GitHub: ${revokeResponse.status} ${revokeError}`,
+        {
+          status: 502,
+        }
+      );
+    }
+  }
+
+  const sessionId = await randomBase64Url(32);
+  const sessionHash = await sha256Base64Url(sessionId);
+  const sessionExpiresAt = now + 28800;
+
+  await env.DB.prepare(
+    `INSERT INTO sessions
+     (id_hash, issuer, subject, email, display_name, expires_at, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  )
+    .bind(
+      sessionHash,
+      provider.issuer,
+      identity.subject,
+      identity.email,
+      identity.displayName,
+      sessionExpiresAt,
+      now
+    )
+    .run();
+
+  const sessionCookie = serializeCookie(
+    "__Host-session",
+    sessionId,
+    {
+      maxAge: 28800,
+      httpOnly: true,
+      secure: true,
+      sameSite: "Strict",
+      path: "/",
+    }
+  );
+
+  const clearTransactionCookie = serializeCookie(
+    "__Host-oauth-tx",
+    "",
+    {
+      maxAge: 0,
+      httpOnly: true,
+      secure: true,
+      sameSite: "Lax",
+      path: "/",
+    }
+  );
+
+  const headers = new Headers();
+  headers.set("Location", baseUrl);
+  headers.append("Set-Cookie", sessionCookie);
+  headers.append("Set-Cookie", clearTransactionCookie);
+  headers.set("Cache-Control", "no-store");
+
+  return new Response(null, {
+    status: 302,
+    headers,
+  });
+}
