@@ -106,19 +106,7 @@ export async function onRequestGet(context) {
     return new Response("Falha ao trocar código OAuth", {
       status: 502,
     });
-  }if (!tokenResponse.ok) {
-  const details = await tokenResponse.text();
-
-  return new Response(
-    `Falha ao trocar código OAuth: ${details}`,
-    {
-      status: 502,
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-      },
-    }
-  );
-}
+  }
 
   const tokens = await tokenResponse.json();
 
