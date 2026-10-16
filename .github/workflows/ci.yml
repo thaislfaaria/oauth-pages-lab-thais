@@ -35,5 +35,4 @@ jobs:
 
       - name: Valida HTML
         run: npx --yes htmlhint "**/*.html"
-      - name: Teste de falha proposital
-        run: exit 1
+      
