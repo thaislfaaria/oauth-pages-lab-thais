@@ -1,3 +1,4 @@
+
 name: ci
 
 on:
@@ -14,15 +15,21 @@ jobs:
 
       - name: Procura segredos versionados
         run: |
-          if git grep -nE "GOCSPX-|client_secret *= *['\"][^'\"]+" -- . ':!*.md'; then
+          if git grep -nE "GOCSPX-|client_secret *= *['\"][^'\"]+" -- . ':!.github/workflows/ci.yml' ':!*.md'; then
             echo "::error::Possível segredo no repositório"
             exit 1
           fi
 
       - name: Aplica as migrações D1 em um SQLite local
         run: |
-          for f in migrations/*.sql; do
-            sqlite3 teste.db < "$f"
+          shopt -s nullglob
+          arquivos=(migrations/*.sql)
+          if [ ${#arquivos[@]} -eq 0 ]; then
+            echo "::error::Nenhuma migração SQL encontrada em migrations/"
+            exit 1
+          fi
+          for f in "${arquivos[@]}"; do
+            sqlite3 teste.db < "$f" || exit 1
           done
           sqlite3 teste.db ".tables"
 
